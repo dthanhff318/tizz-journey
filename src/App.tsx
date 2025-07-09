@@ -1,5 +1,7 @@
 import "./App.css";
+import { account, client } from "./libs/appwrite";
 import { supabase } from "./supabase/lib/supabaseClient";
+import { OAuthProvider } from "appwrite";
 
 function App() {
   const handleGoogleLogin = async () => {
@@ -15,9 +17,17 @@ function App() {
     }
   };
 
+  const loginWithGoogle = () => {
+    account.createOAuth2Session(
+      OAuthProvider.Google, // Provider
+      "http://localhost:5173/auth/callback", // Redirect URL after logins
+      "http://localhost:5173" // Redirect URL if user cancel login
+    );
+  };
+
   return (
     <>
-      <button onClick={handleGoogleLogin}>Sign in with Google</button>
+      <button onClick={loginWithGoogle}>Sign in with Google</button>
     </>
   );
 }

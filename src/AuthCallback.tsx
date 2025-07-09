@@ -1,30 +1,37 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "./supabase/lib/supabaseClient";
+import { databases } from "./libs/appwrite";
+import { account } from "./libs/appwrite";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
+    const ensureUserDocument = async () => {
+      const user = await account.get();
+      console.log(user);
+
       try {
-        // Exchange code for session
-        const { error } = await supabase.auth.exchangeCodeForSession(window.location.search);
-        
-        if (error) {
-          console.error("Error during auth callback:", error);
-          navigate("/");
-        } else {
-          // Successfully authenticated, redirect to dashboard
-          navigate("/dashboard");
+        // Check if user has a document
+        const checkUser = await databases.getDocument(
+          "tj-dev-318",
+          "users",
+          user.$id
+        );
+        console.log("checkUser", checkUser);
+        if (!checkUser) {
+          await databases.createDocument("tj-dev-318", "users", user.$id, {
+            name: user.name,
+          });
         }
       } catch (error) {
-        console.error("Unexpected error:", error);
-        navigate("/");
+        console.log("Something went wrong", error);
+      } finally {
+        navigate("/dashboard");
       }
     };
 
-    handleAuthCallback();
+    ensureUserDocument();
   }, [navigate]);
 
   return <div>Authenticating...</div>;
